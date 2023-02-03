@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace MeteoEmulator.Libraries.SharedLibrary.Models
+﻿namespace MeteoEmulator.Libraries.SharedLibrary.Models
 {
     public class MeteoDataPackage
     {

@@ -1,3 +1,6 @@
+using MeteoEmulator.Services.MeteoDataService.DAL.DBContexts;
+using Microsoft.EntityFrameworkCore;
+
 namespace MeteoEmulator.Services.MeteoDataService
 {
     public class Program
@@ -6,12 +9,15 @@ namespace MeteoEmulator.Services.MeteoDataService
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-            builder.Services.AddAuthorization();
-
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole(c => c.TimestampFormat = "[HH:mm:ss]");
+
+            var postgreConnectionString = builder.Configuration.GetConnectionString("PostgreSQL");
+            builder.Services.AddDbContext<MeteoDataDBContext>(options => options.UseNpgsql(postgreConnectionString));
 
             var app = builder.Build();
 
@@ -25,6 +31,8 @@ namespace MeteoEmulator.Services.MeteoDataService
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
+
+            app.MapControllers();
 
             app.Run();
         }
