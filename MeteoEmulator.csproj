@@ -12,4 +12,8 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MeteoEmulator.Libraries.SharedLibrary\MeteoEmulator.Libraries.SharedLibrary.csproj" />
+  </ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-﻿using MeteoEmulator.Models;
+﻿using MeteoEmulator.Libraries.SharedLibrary.Models;
 using System;
 
 namespace MeteoEmulator.Helpers

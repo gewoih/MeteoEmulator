@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MeteoEmulator", "MeteoEmula
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeteoEmulator.Services.MeteoDataService", "..\MeteoEmulator.Services.MeteoDataService\MeteoEmulator.Services.MeteoDataService.csproj", "{0EED0D9C-9126-4F28-83A6-2BFDD50535FE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeteoEmulator.Libraries.SharedLibrary", "..\MeteoEmulator.Libraries.SharedLibrary\MeteoEmulator.Libraries.SharedLibrary.csproj", "{DA3965A2-C8CD-457F-B97B-032B413F3A38}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{0EED0D9C-9126-4F28-83A6-2BFDD50535FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0EED0D9C-9126-4F28-83A6-2BFDD50535FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0EED0D9C-9126-4F28-83A6-2BFDD50535FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA3965A2-C8CD-457F-B97B-032B413F3A38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA3965A2-C8CD-457F-B97B-032B413F3A38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA3965A2-C8CD-457F-B97B-032B413F3A38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA3965A2-C8CD-457F-B97B-032B413F3A38}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

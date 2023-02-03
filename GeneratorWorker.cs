@@ -1,5 +1,5 @@
 using MeteoEmulator.Handlers;
-using MeteoEmulator.Models;
+using MeteoEmulator.Libraries.SharedLibrary.Models;
 using MeteoEmulator.Utils;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

@@ -1,4 +1,4 @@
-﻿using MeteoEmulator.Models;
+﻿using MeteoEmulator.Libraries.SharedLibrary.Models;
 using MeteoEmulator.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

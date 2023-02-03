@@ -1,9 +1,9 @@
 ﻿using MeteoEmulator.Helpers;
-using MeteoEmulator.Models;
 using System.Collections.Generic;
 using System.Linq;
 using MeteoEmulator.Utils;
 using Microsoft.Extensions.Options;
+using MeteoEmulator.Libraries.SharedLibrary.Models;
 
 namespace MeteoEmulator.Handlers
 {
