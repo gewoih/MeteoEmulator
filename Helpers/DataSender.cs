@@ -16,10 +16,6 @@ namespace MeteoEmulator.Helpers
         private HttpClient _httpClient;
         private HttpClient HttpClient => _httpClient ??= new HttpClient();
 
-        public DataSender()
-        {
-        }
-
         public async Task<bool> Send(MeteoDataPackage package, string url, CancellationToken token)
         {
             try
