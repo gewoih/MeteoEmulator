@@ -2,6 +2,7 @@
 using MeteoEmulator.Services.MeteoDataService.DAL.DBContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MeteoEmulator.Services.MeteoDataService.Migrations
 {
     [DbContext(typeof(MeteoDataDBContext))]
-    partial class MeteoDataDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230204153656_SensorData_Package_Added")]
+    partial class SensorDataPackageAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -23,20 +26,13 @@ namespace MeteoEmulator.Services.MeteoDataService.Migrations
 
             modelBuilder.Entity("MeteoEmulator.Libraries.SharedLibrary.DTO.MeteoDataPackageDTO", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("MeteoStationName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<long>("PackageID")
                         .HasColumnType("bigint");
 
-                    b.HasKey("Id");
+                    b.Property<string>("MeteoStationName")
+                        .HasColumnType("text");
+
+                    b.HasKey("PackageID", "MeteoStationName");
 
                     b.ToTable("MeteoStationsData");
                 });
@@ -49,8 +45,12 @@ namespace MeteoEmulator.Services.MeteoDataService.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("PackageId")
-                        .HasColumnType("integer");
+                    b.Property<long>("PackageID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("PackageMeteoStationName")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("SensorName")
                         .IsRequired()
@@ -64,7 +64,7 @@ namespace MeteoEmulator.Services.MeteoDataService.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PackageId");
+                    b.HasIndex("PackageID", "PackageMeteoStationName");
 
                     b.ToTable("SensorsData");
                 });
@@ -73,7 +73,7 @@ namespace MeteoEmulator.Services.MeteoDataService.Migrations
                 {
                     b.HasOne("MeteoEmulator.Libraries.SharedLibrary.DTO.MeteoDataPackageDTO", "Package")
                         .WithMany("SensorData")
-                        .HasForeignKey("PackageId")
+                        .HasForeignKey("PackageID", "PackageMeteoStationName")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

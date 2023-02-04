@@ -5,6 +5,7 @@ using MeteoEmulator.Libraries.SharedLibrary.Models;
 using MeteoEmulator.Services.MeteoDataService.DAL.DBContexts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 
 namespace MeteoEmulator.Services.MeteoDataService.Controllers
 {
@@ -21,32 +22,11 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 		}
 
 		[HttpPut]
-		//[Route("data")]
+		[Route("data")]
 		public async Task SaveRegularMeteoData([FromBody] MeteoDataPackage meteoData)
 		{
 			var meteoDataDTO = meteoData.ToDTO(SensorDataType.Default);
-			var meteoStationName = meteoDataDTO.MeteoStationName;
-
-			_logger.LogInformation($"Regular meteo data received from meteo station '{meteoStationName}'.");
-
-			var findedPackage = await _meteoDataDbContext.MeteoStationsData
-				.Include(data => data.SensorData)
-				.SingleOrDefaultAsync(data => data.Equals(meteoDataDTO));
-
-			if (findedPackage == null) 
-			{
-				_meteoDataDbContext.MeteoStationsData.Add(meteoDataDTO);
-
-				_logger.LogInformation($"New meteo station '{meteoStationName}' added with {meteoDataDTO.SensorData.Count} regular sensors data.");
-			}
-			else
-			{
-				findedPackage.SensorData = meteoDataDTO.SensorData;
-
-				_logger.LogInformation($"Regular sensors data updated for meteo station {meteoStationName}.");
-			}
-
-			await _meteoDataDbContext.SaveChangesAsync();
+			await SaveMeteoData(meteoDataDTO);
 		}
 
 		[HttpPut]
@@ -54,41 +34,39 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 		public async Task SaveNoiseAndSmoothedMeteoData([FromBody] MeteoDataPackage meteoData)
 		{
             var meteoDataDTO = meteoData.ToDTO(SensorDataType.Noise);
-            var meteoStationName = meteoDataDTO.MeteoStationName;
-
-            _logger.LogInformation($"Noise meteo data received from meteo station '{meteoStationName}'.");
-
-            var findedPackage = await _meteoDataDbContext.MeteoStationsData
-                .SingleOrDefaultAsync(data => data.Equals(meteoDataDTO));
-
-            if (findedPackage == null)
-            {
-                _meteoDataDbContext.MeteoStationsData.Add(meteoDataDTO);
-                _logger.LogInformation($"New meteo station '{meteoStationName}' added with {meteoDataDTO.SensorData.Count} noise sensors data.");
-            }
-            else
-            {
-                findedPackage.SensorData = meteoDataDTO.SensorData;
-                _logger.LogInformation($"Noise sensors data updated for meteo station {meteoStationName}.");
-            }
-
-            await _meteoDataDbContext.SaveChangesAsync();
-
+			await SaveMeteoData(meteoDataDTO);
 			await SmoothAndSaveMeteoData(meteoDataDTO);
         }
 
 		[HttpGet]
-		[Route("getTotalMeteoStationsStatistics")]
-		public async Task GetTotalMeteoDataStatistics()
-		{
-
-		}
-
-		[HttpGet]
 		[Route("getMeteoStationCSVData")]
-		public async Task GetMeteoStationCSVData(string meteoStationId)
+		public async Task<string> GetMeteoStationCSVData(string meteoStationId)
 		{
+			/*var csvStringBuilder = new StringBuilder("PackageID;SensorName;RegularData;NoiseData;SmoothData");
 
+			var firstData = _meteoDataDbContext.MeteoStationsData
+				.Where(data => data.MeteoStationName == meteoStationId);
+				
+			var allData = await firstData.SelectMany(data => data.SensorData)
+				.GroupBy(data => data.Package.PackageID)
+				.ToDictionaryAsync(data => data.Key, data => data.ToList());
+			
+			foreach (var data in allData) 
+			{
+				var regularValue = data.Value.Single(v => v.Type == SensorDataType.Default).SensorValue;
+				var noiseValue = data.Value.Single(v => v.Type == SensorDataType.Noise).SensorValue;
+				var smoothValue = data.Value.Single(v => v.Type == SensorDataType.Smooth).SensorValue;
+
+                csvStringBuilder.Append(data.Key);
+                csvStringBuilder.Append(";");
+				csvStringBuilder.Append(regularValue);
+				csvStringBuilder.Append(";");
+                csvStringBuilder.Append(noiseValue);
+                csvStringBuilder.Append(";");
+                csvStringBuilder.Append(smoothValue);
+			}
+
+			return csvStringBuilder.ToString();*/
 		}
 
 		private async Task SmoothAndSaveMeteoData(MeteoDataPackageDTO noiseMeteoData)
@@ -105,6 +83,7 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 				.OrderByDescending(data => data.PackageID)
 				.Take(_sensorDataSmoothPeriod)
 				.SelectMany(data => data.SensorData)
+				.Where(data => data.Type == SensorDataType.Noise)
 				.GroupBy(data => data.SensorName)
 				.ToDictionaryAsync(data => data.Key, data => data.ToList());
 
@@ -117,6 +96,7 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 					smoothedMeteoData.SensorData.Add(
 						new SensorDataDTO
 						{
+							Package = smoothedMeteoData,
 							Type = SensorDataType.Smooth,
 							SensorName = sensorValues.First().SensorName,
 							SensorValue = sensorValues.Average(value => value.SensorValue)
@@ -124,22 +104,37 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 				}
 			}
 
+			await SaveMeteoData(smoothedMeteoData);
+        }
+
+		private async Task SaveMeteoData(MeteoDataPackageDTO meteoData)
+		{
             var findedPackage = await _meteoDataDbContext.MeteoStationsData
-                .SingleOrDefaultAsync(data => data.Equals(smoothedMeteoData));
+				.Include(data => data.SensorData)
+                .SingleOrDefaultAsync(data => data.MeteoStationName == meteoData.MeteoStationName && data.PackageID == meteoData.PackageID);
 
-			var meteoStationId = smoothedMeteoData.MeteoStationName;
-            if (findedPackage == null)
-            {
-                _meteoDataDbContext.MeteoStationsData.Add(smoothedMeteoData);
-                _logger.LogInformation($"New meteo station '{meteoStationId}' added with {smoothedMeteoData.SensorData.Count} smoothed sensors data.");
-            }
-            else
-            {
-                findedPackage.SensorData.AddRange(smoothedMeteoData.SensorData);
-                _logger.LogInformation($"Smoothed sensors data updated for meteo station {meteoStationId}.");
-            }
+            var meteoStationId = meteoData.MeteoStationName;
+			if (findedPackage == null)
+			{
+				_meteoDataDbContext.MeteoStationsData.Add(meteoData);
+			}
+			else
+			{
+				foreach (var sensor in meteoData.SensorData)
+				{
+					var findedSensor = findedPackage.SensorData.SingleOrDefault(data =>
+						data.Package.PackageID == sensor.Package.PackageID &&
+						data.SensorName == sensor.SensorName &&
+						data.Type == sensor.Type);
 
-			await _meteoDataDbContext.SaveChangesAsync();
+					if (findedSensor is null)
+						findedPackage.SensorData.Add(sensor);
+					else
+						findedSensor.SensorValue = sensor.SensorValue;
+				}
+			}
+
+            await _meteoDataDbContext.SaveChangesAsync();
         }
 	}
 }

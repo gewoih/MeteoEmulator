@@ -9,11 +9,5 @@ namespace MeteoEmulator.Services.MeteoDataService.DAL.DBContexts
         public DbSet<SensorDataDTO> SensorsData { get; set; }
 
         public MeteoDataDBContext(DbContextOptions options) : base(options) { }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<MeteoDataPackageDTO>()
-                .HasKey(data => new { data.PackageID, data.MeteoStationName });
-        }
     }
 }

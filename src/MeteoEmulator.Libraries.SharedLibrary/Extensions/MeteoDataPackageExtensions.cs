@@ -20,6 +20,7 @@ namespace MeteoEmulator.Libraries.SharedLibrary.Extensions
                 meteoDataDTO.SensorData.Add(
                     new SensorDataDTO
                     {
+                        Package = meteoDataDTO,
                         SensorName = sensor.SensorName,
                         SensorValue = sensor.SensorValue,
                         Type = sensorDataType
