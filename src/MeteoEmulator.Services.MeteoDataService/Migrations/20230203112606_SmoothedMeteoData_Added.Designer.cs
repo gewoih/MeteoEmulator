@@ -3,6 +3,7 @@ using System;
 using MeteoEmulator.Services.MeteoDataService.DAL.DBContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MeteoEmulator.Services.MeteoDataService.Migrations
 {
     [DbContext(typeof(MeteoDataDBContext))]
-    partial class MeteoDataDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230203112606_SmoothedMeteoData_Added")]
+    partial class SmoothedMeteoDataAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,20 +25,20 @@ namespace MeteoEmulator.Services.MeteoDataService.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("MeteoEmulator.Libraries.SharedLibrary.DTO.MeteoDataPackageDTO", b =>
+            modelBuilder.Entity("MeteoEmulator.Libraries.SharedLibrary.Models.MeteoDataPackage", b =>
                 {
-                    b.Property<long>("PackageID")
+                    b.Property<long>("DataPackageID")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("MeteoStationName")
+                    b.Property<string>("EmulatorID")
                         .HasColumnType("text");
 
-                    b.HasKey("PackageID", "MeteoStationName");
+                    b.HasKey("DataPackageID", "EmulatorID");
 
-                    b.ToTable("MeteoStationsData");
+                    b.ToTable("MeteoDataPackage");
                 });
 
-            modelBuilder.Entity("MeteoEmulator.Libraries.SharedLibrary.DTO.SensorDataDTO", b =>
+            modelBuilder.Entity("MeteoEmulator.Libraries.SharedLibrary.Models.SensorData", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -43,11 +46,11 @@ namespace MeteoEmulator.Services.MeteoDataService.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("MeteoDataPackageDTOMeteoStationName")
-                        .HasColumnType("text");
-
-                    b.Property<long?>("MeteoDataPackageDTOPackageID")
+                    b.Property<long?>("MeteoDataPackageDataPackageID")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("MeteoDataPackageEmulatorID")
+                        .HasColumnType("text");
 
                     b.Property<string>("SensorName")
                         .IsRequired()
@@ -56,24 +59,21 @@ namespace MeteoEmulator.Services.MeteoDataService.Migrations
                     b.Property<double>("SensorValue")
                         .HasColumnType("double precision");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("MeteoDataPackageDTOPackageID", "MeteoDataPackageDTOMeteoStationName");
+                    b.HasIndex("MeteoDataPackageDataPackageID", "MeteoDataPackageEmulatorID");
 
                     b.ToTable("SensorsData");
                 });
 
-            modelBuilder.Entity("MeteoEmulator.Libraries.SharedLibrary.DTO.SensorDataDTO", b =>
+            modelBuilder.Entity("MeteoEmulator.Libraries.SharedLibrary.Models.SensorData", b =>
                 {
-                    b.HasOne("MeteoEmulator.Libraries.SharedLibrary.DTO.MeteoDataPackageDTO", null)
+                    b.HasOne("MeteoEmulator.Libraries.SharedLibrary.Models.MeteoDataPackage", null)
                         .WithMany("SensorData")
-                        .HasForeignKey("MeteoDataPackageDTOPackageID", "MeteoDataPackageDTOMeteoStationName");
+                        .HasForeignKey("MeteoDataPackageDataPackageID", "MeteoDataPackageEmulatorID");
                 });
 
-            modelBuilder.Entity("MeteoEmulator.Libraries.SharedLibrary.DTO.MeteoDataPackageDTO", b =>
+            modelBuilder.Entity("MeteoEmulator.Libraries.SharedLibrary.Models.MeteoDataPackage", b =>
                 {
                     b.Navigation("SensorData");
                 });
