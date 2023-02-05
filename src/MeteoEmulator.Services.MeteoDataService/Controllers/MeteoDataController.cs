@@ -5,11 +5,12 @@ using MeteoEmulator.Libraries.SharedLibrary.Models;
 using MeteoEmulator.Services.MeteoDataService.DAL.DBContexts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 
 namespace MeteoEmulator.Services.MeteoDataService.Controllers
 {
-    public class MeteoDataController : Controller
+	public class MeteoDataController : Controller
 	{
 		private readonly ILogger<MeteoDataController> _logger;
 		private readonly MeteoDataDBContext _meteoDataDbContext;
@@ -33,10 +34,43 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 		[Route("noiseData")]
 		public async Task SaveNoiseAndSmoothedMeteoData([FromBody] MeteoDataPackage meteoData)
 		{
-            var meteoDataDTO = meteoData.ToDTO(SensorDataType.Noise);
+			var meteoDataDTO = meteoData.ToDTO(SensorDataType.Noise);
 			await SaveMeteoData(meteoDataDTO);
 			await SmoothAndSaveMeteoData(meteoDataDTO);
-        }
+		}
+
+		[HttpGet]
+		[Route("getMeteoStationsStatistics")]
+		public async Task<MeteoStationsStatistics> GetMeteoStationsStatistics()
+		{
+			var meteoStationsStataistics = new MeteoStationsStatistics
+			{
+				TotalMeteoStationsCount = await _meteoDataDbContext.MeteoStationsData
+					.AsNoTracking()
+					.Select(data => data.MeteoStationName)
+					.Distinct()
+					.CountAsync(),
+
+				TotalMeteoStationsSensorsCount = await _meteoDataDbContext.SensorsData
+					.AsNoTracking()
+					.Select(sensor => sensor.Name)
+                    .Distinct()
+					.CountAsync(),
+
+				SensorsDataCount = await _meteoDataDbContext.SensorsData
+					.AsNoTracking()
+                    .GroupBy(sensor => sensor.Name)
+					.ToDictionaryAsync(sensor => sensor.Key, sensor => sensor.Count()),
+
+				MeteoStationsSensorsCount = await _meteoDataDbContext.SensorsData
+					.AsNoTracking()
+					.Include(data => data.Package)
+					.GroupBy(data => data.Package.MeteoStationName)
+					.ToDictionaryAsync(data => data.Key, data => data.Count())
+			};
+
+			return meteoStationsStataistics;
+		}
 
 		[HttpGet]
 		[Route("getMeteoStationCSVData")]
