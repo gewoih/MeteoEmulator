@@ -5,7 +5,6 @@ using MeteoEmulator.Libraries.SharedLibrary.Models;
 using MeteoEmulator.Services.MeteoDataService.DAL.DBContexts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Metadata.Ecma335;
 using System.Text;
 
 namespace MeteoEmulator.Services.MeteoDataService.Controllers
@@ -27,6 +26,8 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 		public async Task SaveRegularMeteoData([FromBody] MeteoDataPackage meteoData)
 		{
 			var meteoDataDTO = meteoData.ToDTO(SensorDataType.Default);
+			
+			_logger.LogInformation($"Saving regular meteo data... ({meteoData})");
 			await SaveMeteoData(meteoDataDTO);
 		}
 
@@ -34,15 +35,21 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 		[Route("noiseData")]
 		public async Task SaveNoiseAndSmoothedMeteoData([FromBody] MeteoDataPackage meteoData)
 		{
-			var meteoDataDTO = meteoData.ToDTO(SensorDataType.Noise);
+            var meteoDataDTO = meteoData.ToDTO(SensorDataType.Noise);
+            
+			_logger.LogInformation($"Saving noise meteo data... ({meteoData})");
 			await SaveMeteoData(meteoDataDTO);
-			await SmoothAndSaveMeteoData(meteoDataDTO);
+
+            _logger.LogInformation($"Saving smoothed meteo data... ({meteoData})");
+            await SmoothAndSaveMeteoData(meteoDataDTO);
 		}
 
 		[HttpGet]
 		[Route("getMeteoStationsStatistics")]
 		public async Task<MeteoStationsStatistics> GetMeteoStationsStatistics()
 		{
+			_logger.LogInformation("Forming statistics for all meteo stations...");
+
 			var meteoStationsStataistics = new MeteoStationsStatistics
 			{
 				TotalMeteoStationsCount = await _meteoDataDbContext.MeteoStationsData
@@ -69,6 +76,8 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 					.ToDictionaryAsync(data => data.Key, data => data.Count())
 			};
 
+			_logger.LogInformation($"Statistics for all meteo stations was formed ({meteoStationsStataistics})");
+
 			return meteoStationsStataistics;
 		}
 
@@ -76,6 +85,8 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 		[Route("getMeteoStationCSVData")]
 		public async Task<string> GetMeteoStationCSVData(string meteoStationName)
 		{
+			_logger.LogInformation($"Forming CSV data for meteo station '{meteoStationName}'...");
+
 			var csvStringBuilder = new StringBuilder();
 			csvStringBuilder.AppendLine("PackageID;SensorName;RegularData;NoiseData;SmoothData");
 
@@ -98,18 +109,20 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
                     var smoothValue = dataPackage.Value.FirstOrDefault(v => v.Name == sensorName && v.Type == SensorDataType.Smooth);
 
 					csvStringBuilder.Append(dataPackage.Key);
-					csvStringBuilder.Append(";");
+					csvStringBuilder.Append(';');
 					csvStringBuilder.Append(sensorName);
-					csvStringBuilder.Append(";");
+					csvStringBuilder.Append(';');
 					csvStringBuilder.Append(regularValue is not null ? regularValue.Value : defaultValue);
-                    csvStringBuilder.Append(";");
+                    csvStringBuilder.Append(';');
                     csvStringBuilder.Append(noiseValue is not null ? noiseValue.Value : defaultValue);
-                    csvStringBuilder.Append(";");
+                    csvStringBuilder.Append(';');
                     csvStringBuilder.Append(smoothValue is not null ? smoothValue.Value : defaultValue);
 
                     csvStringBuilder.AppendLine(";");
 				}
 			}
+
+			_logger.LogInformation($"CSV data for meteo station '{meteoStationName}' was formed. ({csvStringBuilder})");
 
 			return csvStringBuilder.ToString();
 		}
@@ -136,7 +149,7 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 			{
 				var sensorName = noiseMeteoData.SensorData[i].Name;
 				
-				if (lastNoiseMeteoDataBuffer.TryGetValue(sensorName, out List<SensorDataDAO> sensorValues))
+				if (lastNoiseMeteoDataBuffer.TryGetValue(sensorName, out List<SensorDataDAO>? sensorValues))
 				{
 					smoothedMeteoData.SensorData.Add(
 						new SensorDataDAO
@@ -154,6 +167,8 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 
 		private async Task SaveMeteoData(MeteoDataPackageDAO meteoData)
 		{
+			_logger.LogInformation($"Saving meteo data ({meteoData})");
+
             var findedPackage = await _meteoDataDbContext.MeteoStationsData
 				.Include(data => data.SensorData)
                 .SingleOrDefaultAsync(data => data.MeteoStationName == meteoData.MeteoStationName && data.PackageNumber == meteoData.PackageNumber);
@@ -180,6 +195,8 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 			}
 
             await _meteoDataDbContext.SaveChangesAsync();
+
+			_logger.LogInformation($"Meteo data was saved.");
         }
 	}
 }

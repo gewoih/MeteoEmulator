@@ -6,5 +6,10 @@
         public long PackageNumber { get; set; }
         public string MeteoStationName { get; set; }
         public List<SensorDataDAO> SensorData { get; set; }
+
+        public override string? ToString()
+        {
+            return $"{Id}-{PackageNumber}-{MeteoStationName}-{SensorData.Count}";
+        }
     }
 }
