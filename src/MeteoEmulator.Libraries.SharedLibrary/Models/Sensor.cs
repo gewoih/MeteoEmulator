@@ -8,6 +8,10 @@
         public double SensorMaxValue { get; set; }
         public double SensorMinValue { get; set; }
 
+        public Sensor()
+        {
+        }
+
         public Sensor(Sensor sensor)
         {
             SensorName = sensor.SensorName;
