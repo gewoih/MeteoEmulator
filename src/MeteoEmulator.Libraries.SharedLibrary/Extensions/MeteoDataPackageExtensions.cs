@@ -10,7 +10,7 @@ namespace MeteoEmulator.Libraries.SharedLibrary.Extensions
         {
             var meteoDataDTO = new MeteoDataPackageDAO
             {
-                PackageID = meteoData.DataPackageID,
+                PackageNumber = meteoData.DataPackageID,
                 MeteoStationName = meteoData.EmulatorID,
                 SensorData = new List<SensorDataDAO>()
             };
@@ -21,8 +21,8 @@ namespace MeteoEmulator.Libraries.SharedLibrary.Extensions
                     new SensorDataDAO
                     {
                         Package = meteoDataDTO,
-                        SensorName = sensor.SensorName,
-                        SensorValue = sensor.SensorValue,
+                        Name = sensor.SensorName,
+                        Value = sensor.SensorValue,
                         Type = sensorDataType
                     });
             }

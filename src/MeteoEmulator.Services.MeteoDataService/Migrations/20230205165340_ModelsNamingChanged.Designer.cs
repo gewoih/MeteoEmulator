@@ -2,6 +2,7 @@
 using MeteoEmulator.Services.MeteoDataService.DAL.DBContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MeteoEmulator.Services.MeteoDataService.Migrations
 {
     [DbContext(typeof(MeteoDataDBContext))]
-    partial class MeteoDataDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230205165340_ModelsNamingChanged")]
+    partial class ModelsNamingChanged
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

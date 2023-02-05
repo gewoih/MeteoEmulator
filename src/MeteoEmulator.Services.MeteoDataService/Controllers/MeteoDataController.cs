@@ -40,56 +40,67 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 
 		[HttpGet]
 		[Route("getMeteoStationCSVData")]
-		public async Task<string> GetMeteoStationCSVData(string meteoStationId)
+		public async Task<string> GetMeteoStationCSVData(string meteoStationName)
 		{
-			/*var csvStringBuilder = new StringBuilder("PackageID;SensorName;RegularData;NoiseData;SmoothData");
+			var csvStringBuilder = new StringBuilder();
+			csvStringBuilder.AppendLine("PackageID;SensorName;RegularData;NoiseData;SmoothData");
 
-			var firstData = _meteoDataDbContext.MeteoStationsData
-				.Where(data => data.MeteoStationName == meteoStationId);
-				
-			var allData = await firstData.SelectMany(data => data.SensorData)
-				.GroupBy(data => data.Package.PackageID)
+			const int defaultValue = 0;
+
+			var dataPackages = await _meteoDataDbContext.MeteoStationsData
+				.Where(data => data.MeteoStationName == meteoStationName)
+				.SelectMany(data => data.SensorData)
+				.GroupBy(data => data.Package.PackageNumber)
 				.ToDictionaryAsync(data => data.Key, data => data.ToList());
-			
-			foreach (var data in allData) 
-			{
-				var regularValue = data.Value.Single(v => v.Type == SensorDataType.Default).SensorValue;
-				var noiseValue = data.Value.Single(v => v.Type == SensorDataType.Noise).SensorValue;
-				var smoothValue = data.Value.Single(v => v.Type == SensorDataType.Smooth).SensorValue;
 
-                csvStringBuilder.Append(data.Key);
-                csvStringBuilder.Append(";");
-				csvStringBuilder.Append(regularValue);
-				csvStringBuilder.Append(";");
-                csvStringBuilder.Append(noiseValue);
-                csvStringBuilder.Append(";");
-                csvStringBuilder.Append(smoothValue);
+			foreach (var dataPackage in dataPackages)
+			{
+				var sensorsNames = dataPackage.Value.Select(v => v.Name).Distinct();
+
+				foreach (var sensorName in sensorsNames)
+				{
+					var regularValue = dataPackage.Value.FirstOrDefault(v => v.Name == sensorName && v.Type == SensorDataType.Default);
+                    var noiseValue = dataPackage.Value.FirstOrDefault(v => v.Name == sensorName && v.Type == SensorDataType.Noise);
+                    var smoothValue = dataPackage.Value.FirstOrDefault(v => v.Name == sensorName && v.Type == SensorDataType.Smooth);
+
+					csvStringBuilder.Append(dataPackage.Key);
+					csvStringBuilder.Append(";");
+					csvStringBuilder.Append(sensorName);
+					csvStringBuilder.Append(";");
+					csvStringBuilder.Append(regularValue is not null ? regularValue.Value : defaultValue);
+                    csvStringBuilder.Append(";");
+                    csvStringBuilder.Append(noiseValue is not null ? noiseValue.Value : defaultValue);
+                    csvStringBuilder.Append(";");
+                    csvStringBuilder.Append(smoothValue is not null ? smoothValue.Value : defaultValue);
+
+                    csvStringBuilder.AppendLine(";");
+				}
 			}
 
-			return csvStringBuilder.ToString();*/
+			return csvStringBuilder.ToString();
 		}
 
 		private async Task SmoothAndSaveMeteoData(MeteoDataPackageDAO noiseMeteoData)
 		{
 			var smoothedMeteoData = new MeteoDataPackageDAO
 			{
-				PackageID = noiseMeteoData.PackageID,
+				PackageNumber = noiseMeteoData.PackageNumber,
 				MeteoStationName = noiseMeteoData.MeteoStationName,
 				SensorData = new List<SensorDataDAO>()
 			};
 
 			var lastNoiseMeteoDataBuffer = await _meteoDataDbContext.MeteoStationsData
 				.Where(data => data.MeteoStationName == noiseMeteoData.MeteoStationName)
-				.OrderByDescending(data => data.PackageID)
+				.OrderByDescending(data => data.PackageNumber)
 				.Take(_sensorDataSmoothPeriod)
 				.SelectMany(data => data.SensorData)
 				.Where(data => data.Type == SensorDataType.Noise)
-				.GroupBy(data => data.SensorName)
+				.GroupBy(data => data.Name)
 				.ToDictionaryAsync(data => data.Key, data => data.ToList());
 
 			for (int i = 0; i < noiseMeteoData.SensorData.Count; i++)
 			{
-				var sensorName = noiseMeteoData.SensorData[i].SensorName;
+				var sensorName = noiseMeteoData.SensorData[i].Name;
 				
 				if (lastNoiseMeteoDataBuffer.TryGetValue(sensorName, out List<SensorDataDAO> sensorValues))
 				{
@@ -98,8 +109,8 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 						{
 							Package = smoothedMeteoData,
 							Type = SensorDataType.Smooth,
-							SensorName = sensorValues.First().SensorName,
-							SensorValue = sensorValues.Average(value => value.SensorValue)
+							Name = sensorValues.First().Name,
+							Value = sensorValues.Average(value => value.Value)
 						});
 				}
 			}
@@ -111,7 +122,7 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 		{
             var findedPackage = await _meteoDataDbContext.MeteoStationsData
 				.Include(data => data.SensorData)
-                .SingleOrDefaultAsync(data => data.MeteoStationName == meteoData.MeteoStationName && data.PackageID == meteoData.PackageID);
+                .SingleOrDefaultAsync(data => data.MeteoStationName == meteoData.MeteoStationName && data.PackageNumber == meteoData.PackageNumber);
 
             var meteoStationId = meteoData.MeteoStationName;
 			if (findedPackage == null)
@@ -123,14 +134,14 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 				foreach (var sensor in meteoData.SensorData)
 				{
 					var findedSensor = findedPackage.SensorData.SingleOrDefault(data =>
-						data.Package.PackageID == sensor.Package.PackageID &&
-						data.SensorName == sensor.SensorName &&
+						data.Package.PackageNumber == sensor.Package.PackageNumber &&
+						data.Name == sensor.Name &&
 						data.Type == sensor.Type);
 
 					if (findedSensor is null)
 						findedPackage.SensorData.Add(sensor);
 					else
-						findedSensor.SensorValue = sensor.SensorValue;
+						findedSensor.Value = sensor.Value;
 				}
 			}
 
