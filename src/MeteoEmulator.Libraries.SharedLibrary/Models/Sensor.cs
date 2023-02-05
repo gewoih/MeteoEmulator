@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MeteoEmulator.Libraries.SharedLibrary.Models
+﻿namespace MeteoEmulator.Libraries.SharedLibrary.Models
 {
     public class Sensor
     {
@@ -9,10 +7,6 @@ namespace MeteoEmulator.Libraries.SharedLibrary.Models
         public double SensorValue { get; set; }
         public double SensorMaxValue { get; set; }
         public double SensorMinValue { get; set; }
-
-        public Sensor()
-        {
-        }
 
         public Sensor(Sensor sensor)
         {

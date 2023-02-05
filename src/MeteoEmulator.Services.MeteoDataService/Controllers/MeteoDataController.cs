@@ -1,4 +1,4 @@
-﻿using MeteoEmulator.Libraries.SharedLibrary.DTO;
+﻿using MeteoEmulator.Libraries.SharedLibrary.DAO;
 using MeteoEmulator.Libraries.SharedLibrary.Enums;
 using MeteoEmulator.Libraries.SharedLibrary.Extensions;
 using MeteoEmulator.Libraries.SharedLibrary.Models;
@@ -9,7 +9,7 @@ using System.Text;
 
 namespace MeteoEmulator.Services.MeteoDataService.Controllers
 {
-	public class MeteoDataController : Controller
+    public class MeteoDataController : Controller
 	{
 		private readonly ILogger<MeteoDataController> _logger;
 		private readonly MeteoDataDBContext _meteoDataDbContext;
@@ -69,13 +69,13 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 			return csvStringBuilder.ToString();*/
 		}
 
-		private async Task SmoothAndSaveMeteoData(MeteoDataPackageDTO noiseMeteoData)
+		private async Task SmoothAndSaveMeteoData(MeteoDataPackageDAO noiseMeteoData)
 		{
-			var smoothedMeteoData = new MeteoDataPackageDTO
+			var smoothedMeteoData = new MeteoDataPackageDAO
 			{
 				PackageID = noiseMeteoData.PackageID,
 				MeteoStationName = noiseMeteoData.MeteoStationName,
-				SensorData = new List<SensorDataDTO>()
+				SensorData = new List<SensorDataDAO>()
 			};
 
 			var lastNoiseMeteoDataBuffer = await _meteoDataDbContext.MeteoStationsData
@@ -91,10 +91,10 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 			{
 				var sensorName = noiseMeteoData.SensorData[i].SensorName;
 				
-				if (lastNoiseMeteoDataBuffer.TryGetValue(sensorName, out List<SensorDataDTO> sensorValues))
+				if (lastNoiseMeteoDataBuffer.TryGetValue(sensorName, out List<SensorDataDAO> sensorValues))
 				{
 					smoothedMeteoData.SensorData.Add(
-						new SensorDataDTO
+						new SensorDataDAO
 						{
 							Package = smoothedMeteoData,
 							Type = SensorDataType.Smooth,
@@ -107,7 +107,7 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
 			await SaveMeteoData(smoothedMeteoData);
         }
 
-		private async Task SaveMeteoData(MeteoDataPackageDTO meteoData)
+		private async Task SaveMeteoData(MeteoDataPackageDAO meteoData)
 		{
             var findedPackage = await _meteoDataDbContext.MeteoStationsData
 				.Include(data => data.SensorData)
