@@ -9,5 +9,11 @@ namespace MeteoEmulator.Services.MeteoDataService.DAL.DBContexts
         public DbSet<SensorDataDAO> SensorsData { get; set; }
 
         public MeteoDataDBContext(DbContextOptions options) : base(options) { }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<MeteoDataPackageDAO>()
+                .HasIndex(package => package.MeteoStationName);
+        }
     }
 }
