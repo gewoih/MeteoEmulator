@@ -14,14 +14,14 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
         }
 
         [HttpPut]
-        [Route("data1")]
+        [Route("data")]
         public async Task SaveDefaultMeteoData([FromBody] MeteoDataPackage package)
         {
             await _meteoDataService.SaveDefaultMeteoDataAsync(package);
         }
 
         [HttpPut]
-        [Route("noiseData1")]
+        [Route("noiseData")]
         public async Task SaveNoiseMeteoData([FromBody] MeteoDataPackage package)
         {
             await _meteoDataService.SaveNoiseMeteoDataAsync(package);
@@ -29,14 +29,14 @@ namespace MeteoEmulator.Services.MeteoDataService.Controllers
         }
 
         [HttpGet]
-        [Route("getMeteoStationsStatistics1")]
+        [Route("getMeteoStationsStatistics")]
         public async Task<MeteoStationsStatistics> GetMeteoStationsStatistics()
         {
             return await _meteoDataService.GetMeteoStationsStatisticsAsync();
         }
 
         [HttpGet]
-        [Route("getMeteoStationCSVData1")]
+        [Route("getMeteoStationCSVData")]
         public async Task<string> GetMeteoStationCSVData(string meteoStationName)
         {
             return await _meteoDataService.GetMeteoStationCSVDataAsync(meteoStationName);
