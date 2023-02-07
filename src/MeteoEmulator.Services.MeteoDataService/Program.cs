@@ -1,5 +1,6 @@
-using MeteoEmulator.Services.MeteoDataService.DAL.DBContexts;
 using Microsoft.EntityFrameworkCore;
+using MeteoEmulator.Services.MeteoDataService.DAL.DBContexts;
+using MeteoEmulator.Services.MeteoDataService.Services.Interfaces;
 
 namespace MeteoEmulator.Services.MeteoDataService
 {
@@ -18,6 +19,7 @@ namespace MeteoEmulator.Services.MeteoDataService
 
             var postgreConnectionString = builder.Configuration.GetConnectionString("PostgreSQL");
             builder.Services.AddDbContext<MeteoDataDBContext>(options => options.UseNpgsql(postgreConnectionString));
+            builder.Services.AddScoped<IMeteoDataService, Services.MeteoDataService>();
 
             var app = builder.Build();
 
