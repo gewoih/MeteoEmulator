@@ -6,7 +6,7 @@ namespace MeteoEmulator.Libraries.SharedLibrary.Extensions
 {
     public static class MeteoDataPackageExtensions
     {
-        public static MeteoDataPackageDAO ToDTO(this MeteoDataPackage meteoData, SensorDataType sensorDataType)
+        public static MeteoDataPackageDAO ToDAO(this MeteoDataPackage meteoData, SensorDataType sensorDataType)
         {
             var meteoDataDTO = new MeteoDataPackageDAO
             {
