@@ -19,7 +19,7 @@ namespace MeteoEmulator.Services.MeteoDataService
 
             var postgreConnectionString = builder.Configuration.GetConnectionString("PostgreSQL");
             builder.Services.AddDbContext<MeteoDataDBContext>(options => options.UseNpgsql(postgreConnectionString));
-            builder.Services.AddScoped<IMeteoDataService, Services.MeteoDataService>();
+            builder.Services.AddTransient<IMeteoDataService, Services.MeteoDataService>();
 
             var app = builder.Build();
 
